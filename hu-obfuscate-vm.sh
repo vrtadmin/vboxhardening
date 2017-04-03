@@ -5,7 +5,7 @@
 
 # get values from:
 #
-# dmidecode -t0, -t1, t2, -t3, -t4 and -t11 to gather the information need for the script below 
+# dmidecode -t0, -t1, t2, -t3, -t4 and -t11 to gather the information need for the script below
 #
 
 # Change the VBox settings for the guest to use PIIX3 (controller: IDE -> Attributes).
@@ -20,12 +20,12 @@
 
 # Generate your own DSDT
 # dd if=/sys/firmware/acpi/tables/DSDT of=ACPI-DSDT.bin
-# If your replacement ACPI tables from linux are too large (as it was in my case) or for some other reason don't work, 
-# download Read & Write Everything from http://rweverything.com/, and use it to dump the full binary default tables under 
-# your Windows guest. 
-# Copy the file onto your host and edit it either with a hex editor or by decompiling using iasl -d AcpiTbls.bin, then editing 
-# the resulting .dsl script and then recompiling using iasl -tc AcpiTbls.dsl. Set the resulting .aml binary table as your ACPI table 
-# using VBoxManage setextradata <machine> "VBoxInternal/Devices/acpi/0/Config/CustomTable" "/yourpath/DSDT.aml". Be sure to at least 
+# If your replacement ACPI tables from linux are too large (as it was in my case) or for some other reason don't work,
+# download Read & Write Everything from http://rweverything.com/, and use it to dump the full binary default tables under
+# your Windows guest.
+# Copy the file onto your host and edit it either with a hex editor or by decompiling using iasl -d AcpiTbls.bin, then editing
+# the resulting .dsl script and then recompiling using iasl -tc AcpiTbls.dsl. Set the resulting .aml binary table as your ACPI table
+# using VBoxManage setextradata <machine> "VBoxInternal/Devices/acpi/0/Config/CustomTable" "/yourpath/DSDT.aml". Be sure to at least
 # change all vendor names from VBox/Virtualbox/innotek to something else.
 
 # use "VBoxManage list vms" to see VM names
@@ -40,8 +40,8 @@ echo "Installed VMs:"
 
 count=0
 for i in $VMLIST; do
-	count=`expr $count + 1`
-	echo [$count] $i
+    count=`expr $count + 1`
+    echo [$count] $i
 done
 echo -n "Which one do you want to patch (1-$count): "
 read VMNUM
@@ -52,7 +52,7 @@ echo -n "Ok. Should we start patching VM: \"$VMNAME\" (y/N)? "
 read s
 if [ "$s" != "y" ]; then
         echo "ok, nothing done.";
-	exit 1
+    exit 1
 fi
 
 echo "Start patching, pls wait...."
@@ -124,9 +124,8 @@ $VBOXMAN setextradata "$VMNAME" "VBoxInternal/Devices/vga/0/Config/BiosRom" $VID
 $VBOXMAN setextradata "$VMNAME" "VBoxInternal/Devices/pcbios/0/Config/BiosRom" $PCBIOS
 $VBOXMAN setextradata "$VMNAME" "VBoxInternal/Devices/pcbios/0/Config/LanBootRom" $PXE
 
-$VBOXMAN modifyvm "$VMNAME" --macaddress1 6CF1481A9E03			# change MAC of virtual NIC
-#$VBOXMAN modifyvm "$VMNAME" --bioslogoimagepath $SPLASH		# DOES NOT WORK anymore, dunno what Orcale has changed
-$VBOXMAN modifyvm "$VMNAME" --paravirtprovider legacy			# avoid idetection by cpuid check
+$VBOXMAN modifyvm "$VMNAME" --macaddress1 6CF1481A9E03          # change MAC of virtual NIC
+#$VBOXMAN modifyvm "$VMNAME" --bioslogoimagepath $SPLASH        # DOES NOT WORK anymore, dunno what Orcale has changed
+$VBOXMAN modifyvm "$VMNAME" --paravirtprovider legacy           # avoid idetection by cpuid check
 
 $VBOXMAN getextradata "$VMNAME" enumerate
-
