@@ -1,0 +1,240 @@
+Install vbox from source (tested on Ubuntu Server 16.04.1 LTS):
+===============================================================
+
+# Build dependencies can be found at:
+# https://www.virtualbox.org/wiki/Linux%20build%20instructions
+# 
+# unfortunatly, they are always outdated (thx Oracle)
+# here are the missing pkg on Ubuntu Server 16.04.1 LTS:
+
+apt-get install subversion build-essential bcc iasl xsltproc uuid-dev zlib1g-dev libidl-dev \
+                libsdl1.2-dev libxcursor-dev libasound2-dev libstdc++5 \
+                libpulse-dev libxml2-dev libxslt1-dev \
+                pyqt5-dev-tools libqt5opengl5-dev qtbase5-dev-tools libcap-dev \
+                libxmu-dev mesa-common-dev libglu1-mesa-dev \
+                linux-libc-dev libcurl4-openssl-dev libpam0g-dev \
+                libxrandr-dev libxinerama-dev libqt5opengl5-dev makeself \
+                libdevmapper-dev default-jdk texlive-latex-base \
+                texlive-latex-extra texlive-latex-recommended \
+                texlive-fonts-extra texlive-fonts-recommended \
+                lib32ncurses5 lib32z1 libc6-dev-i386 lib32gcc1 gcc-multilib \
+                lib32stdc++6 g++-multilib genisoimage libvpx-dev \
+                qt5-default qttools5-dev-tools libqt5x11extras5-dev libssl-dev python-all-dev
+
+
+# Get the latest source (tested on 13 Jan 2017)
+svn co http://www.virtualbox.org/svn/vbox/trunk vbox
+
+====================== optional part - if you want to test if compiling vbox works =============================
+# make a copy of the source  
+cp -R vbox vbox-org
+
+# move to the vbox directory
+cd vbox
+
+# test if the source compiles  
+./configure --disable-hardening
+source ./env.sh
+
+# build kernel modules
+cd out/linux.amd64/release/bin/src
+make
+sudo make install
+
+# test if the modules are loaded into the kernel
+sudo modprobe vboxdrv
+sudo modprobe vboxpci 
+sudo modprobe vboxnetflt
+sudo modprobe vboxnetadp
+lsmod | grep vbox
+
+# Go back to binary dir (of VirtualBox app)
+cd ..
+
+# add an network interface for testing
+sudo ./VBoxManage hostonlyif create
+
+# check if vboxnet0 was created
+ifconfig -a  
+
+# test if VirtualBox app starts
+./VirtualBox
+
+# Remove everything
+sudo rmmod vboxnetadp
+sudo rmmod vboxnetflt 
+sudo rmmod vboxpci 
+sudo rmmod vboxdrv 
+sudo rm /lib/modules/4.4.0-31-generic/misc/vbox*
+
+# move out of the vbox directory and restore the org. vbox folder
+cd ../../../../..
+rm -rf vbox
+cp -R vbox-org vbox
+
+====================== end of optional part - if you want to test if compiling vbox works =============================
+
+
+# cd into vbox directory
+cd vbox
+
+# Patch VirtualBox:
+# =================
+
+#rename all files from vbox to vxox (execute the renaming files cmds as often as neccessary (until no errors occure anymore))
+find . -name '*VirtualBox*' -exec bash -c 'mv "$0" "${0/VirtualBox/XirtualXox}"' {} \;
+find . -name '*virtualbox*' -exec bash -c 'mv "$0" "${0/virtualbox/xirtualxox}"' {} \;
+find . -type f -name "*" -exec sed -i 's/VirtualBox/XirtualXox/g' {} +
+find . -type f -name "*" -exec sed -i 's/virtualbox/xirtualxox/g' {} +
+find . -type f -name "*" -exec sed -i 's/VIRTUALBOX/XIRTUALXOX/g' {} +
+find . -type f -name "*" -exec sed -i 's/virtualBox/xirtualXox/g' {} +
+
+# rename all "Oracle" strings
+find . -name '*Oracle*' -exec bash -c 'mv "$0" "${0/Oracle/Xracle}"' {} \;
+find . -name '*oracle*' -exec bash -c 'mv "$0" "${0/oracle/xracle}"' {} \;
+find . -type f -name "*" -exec sed -i 's/Oracle/Xracle/g' {} +
+find . -type f -name "*" -exec sed -i 's/oracle/xracle/g' {} +
+
+#remove PCI id 80EE
+find . -type f -name "*" -exec sed -i 's/80EE/80EF/g' {} +
+find . -type f -name "*" -exec sed -i 's/80ee/80ef/g' {} +
+
+# replace BIOS date
+sed -i 's/06\/23\/99/07\/24\/13/g' src/VBox/Devices/PC/BIOS/orgs.asm
+
+# replace all "vbox" strings
+find . -name '*vbox*' -exec bash -c 'mv "$0" "${0/vbox/vxox}"' {} \;
+find . -name '*VBox*' -exec bash -c 'mv "$0" "${0/VBox/VXox}"' {} \;
+
+find . -type f -name "*" -exec sed -i 's/vbox/vxox/g' {} +
+find . -type f -name "*" -exec sed -i 's/VBox/VXox/g' {} +
+find . -type f -name "*" -exec sed -i 's/VBOX/VXOX/g' {} +
+find . -type f -name "*" -exec sed -i 's/Vbox/Vxox/g' {} +
+
+# replace "InnoTek" strings
+find . -type f -name "*" -exec sed -i 's/innotek/xnnotek/g' {} +
+find . -type f -name "*" -exec sed -i 's/InnoTek/XnnoTek/g' {} +
+find . -type f -name "*" -exec sed -i 's/INNOTEK/XNNOTEK/g' {} +
+
+# start configure
+./configure --disable-hardening
+source ./env.sh
+
+# fix wrongly renamed QT strings/functions
+find . -type f -name "*" -exec sed -i 's/QVXoxLayout/QVBoxLayout/g' {} +
+
+# disable kmk MD5sum checks e.g. I just renamed the org kmk_md5sum and replaced it 
+# with a bash script. This is neccessary because kmk checks the BIOS files against
+# a pre compiled md5sum files e.g. Devices/Graphics/BIOS/VXoxVgaBiosAlternative8086.md5sum
+  
+cat kBuild/bin/linux.amd64/kmk_md5sum
+  #!/bin/bash
+
+  echo $2 >>/home/talos/Sources/vbox/kmk_md5.out	# incase you want to do your own md5sum check later
+  echo $2                                               # kmk_md5.out shows you which files are interesting
+  echo 
+
+# make it executable
+chmod +x kBuild/bin/linux.amd64/kmk_md5sum
+
+# compile VirtualBox app
+kmk
+
+# replace autogenerated BIOS date in all files found by...
+grep -Rn '0x30, 0x36, 0x2f, 0x32, 0x33, 0x2f, 0x39, 0x39'
+# to ... something like 0x30, 0x37, 0x2f, 0x32, 0x34, 0x2f, 0x31, 0x33 (or to what ever date you want)
+# thx Oracle took me a while to find this.
+
+# compile the BIOS diff again
+kmk
+
+# compile kernel modules
+cd ./out/linux.amd64/release/bin/src
+make
+
+# get rid of the old kernel modules
+sudo rm /lib/modules/4.4.0-53-generic/misc/vxox*	# if they exist (same for vbox*)
+
+# install kernel modules
+sudo make install
+
+cd ..						# <install dir>/out/linux.amd64/release/bin
+sudo rm -rf /usr/local/virtualbox		# if existing
+sudo mkdir /usr/local/virtualbox
+sudo cp -prf * /usr/local/virtualbox/
+sudo rm /usr/lib/VXox*
+sudo cp -prf *.so /usr/lib/
+
+# create symlinks for your comfort (and other programms like Cuckoo)
+sudo ln -s /usr/local/virtualbox/XirtualXox /usr/local/bin/VirtualBox
+sudo ln -s /usr/local/virtualbox/VBoxSVC    /usr/local/bin/VBoxSVC
+sudo ln -s /usr/local/virtualbox/VXoxManage  /usr/local/bin/VBoxManage
+
+# test if modules can be loaded (remove already loaded ones before if neccessary)
+sudo modprobe vboxdrv
+sudo modprobe vxoxnetflt
+sudo modprobe vxoxnetadp
+sudo modprobe vxoxpci
+lsmod | grep vxox 
+
+# load modules at startup
+sudo vi /etc/modules
+  add:
+	vxoxdrv
+   	vxoxpci
+	vxoxnetadp
+	vxoxnetflt
+
+# create user/groups and permissions to vbox devices
+sudo groupadd vboxusers
+sudo usermod -G vboxusers -a talos		# talos = your username
+sudo chmod 660 /dev/vxox*
+sudo chgrp vboxusers /dev/vxox*
+
+# change user rights for devices (at boot) 
+vi /etc/udev/rules.d/40-permissions.rules
+KERNEL=="vxoxdrv",                        GROUP="vboxusers", MODE="0660"
+KERNEL=="vxoxdrvu",                       GROUP="vboxusers", MODE="0660"
+KERNEL=="vxoxnetctl",                     GROUP="vboxusers", MODE="0660"
+
+# add hostonly nic
+VBoxManage hostonlyif create 		  # should autom. create vxox
+
+# start vbox nic at startup
+sudo vi /etc/network/interfaces
+# add:
+auto vxoxnet0
+iface vxoxnet0 inet static
+	address         192.168.56.1
+        netmask         255.255.255.0
+        network         192.168.56.0
+        broadcast       192.168.56.255
+	pre-up /usr/local/bin/VBoxManage list vms 2>&1 >> /dev/null    # to init the iface autom.
+
+# finally
+reboot
+
+Install VM (tested with Win7x64)
+---------------------------------------
+
+Create Win7 (64bit) Guest 
+
+Note: !!! DO NOT INSTALL ANY ADD-ONs or ADDITIONs !!!
+
+Change VM setting to:
+- Set System/Acceleration/Paravirtualization Interface: Legacy  (this avoids detection via cpuid)
+- Change System/Pointing Device to PS/2 Mouse                   (otherwise we can not disable USB later)
+- Change Controller IDE to PIIX3                                (or you need to adapt the script later)
+- Network use Host-only Adapter (vboxnet0) (PCnet-Fast III)
+- No Serial Ports (deactivate) 
+- No USB (deactivate)
+- Rest can be kept default...
+
+4) Apply obfuscater.sh  ( VBoxManage setextradata <VM> .... )
+This is patching bios, startup screen and many other things, for details check script
+
+5) Start Vbox Host (Win7), install operating system 
+
+-------------
+
+
