@@ -17,7 +17,8 @@ apt-get install subversion build-essential bcc iasl xsltproc uuid-dev \
     texlive-latex-recommended texlive-fonts-extra texlive-fonts-recommended \
     lib32ncurses5 lib32z1 libc6-dev-i386 lib32gcc1 gcc-multilib \
     lib32stdc++6 g++-multilib genisoimage libvpx-dev qt5-default \
-    qttools5-dev-tools libqt5x11extras5-dev libssl-dev python-all-dev git-svn
+    qttools5-dev-tools libqt5x11extras5-dev libssl-dev python-all-dev \
+    git-svn kbuild iasl libpng-dev libsdl-dev yasm
 
 # Get the latest source (tested on 13 Jan 2017)
 svn co http://www.virtualbox.org/svn/vbox/trunk vbox
@@ -32,6 +33,7 @@ cd vbox
 # test if the source compiles
 ./configure --disable-hardening
 source ./env.sh
+kmk
 
 # build kernel modules
 cd out/linux.amd64/release/bin/src

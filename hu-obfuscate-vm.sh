@@ -57,17 +57,17 @@ fi
 
 echo "Start patching, pls wait...."
 
-VBODIR="/home/talos/sources/HU_VirtualBoxObfuscateHW2017"
+VBOXDIR="/home/talos/sources/HU_VirtualBoxObfuscateHW2017"
 
-SLIC="$VBODIR/vbox-obfuscator-data/SLIC.bin"
-DSDT="$VBODIR/vbox-obfuscator-data/ACPI-DSDT.bin"
-SSDT="$VBODIR/vbox-obfuscator-data/ACPI-SSDT1.bin"
-SPLASH="$VBODIR/vbox-obfuscator-data/splash.xcf"
-VIDEO="$VBODIR/vbox-obfuscator-data/videorom.bin"
-PCBIOS="$VBODIR/vbox-obfuscator-data/pcbios.bin"
-PXE="$VBODIR/vbox-obfuscator-data/pxerom.bin"
-ACPIDSDT="$VBODIR/vbox-obfuscator-data/ACPI-DSDT-new.bin"
-ACPISSDT="$VBODIR/vbox-obfuscator-data/ACPI-SSDT1-new.bin"
+SLIC="$VBOXDIR/vboxdata/SLIC.bin"
+DSDT="$VBOXDIR/vboxdata/ACPI-DSDT.bin"
+SSDT="$VBOXDIR/vboxdata/ACPI-SSDT1.bin"
+SPLASH="$VBOXDIR/vboxdata/splash.xcf"
+VIDEO="$VBOXDIR/vboxdata/videorom.bin"
+PCBIOS="$VBOXDIR/vboxdata/pcbios.bin"
+PXE="$VBOXDIR/vboxdata/pxerom.bin"
+ACPIDSDT="$VBOXDIR/vboxdata/ACPI-DSDT-new.bin"
+ACPISSDT="$VBOXDIR/vboxdata/ACPI-SSDT1-new.bin"
 
 VBOXMAN="/usr/local/bin/VBoxManage"
 
