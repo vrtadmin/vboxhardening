@@ -6,22 +6,27 @@ KMKTOOLSSUBDIR=kBuild/bin/linux.amd64					# where we find the kmk tools e.g. kmk
 MD5SUMOUT=$SOURCESDIR/kmk_md5.out					# log md5sum ops to this file
 VBOXMANAGE=$SOURCESDIR/out/linux.amd64/release/bin/VXoxManage		# location and name of VBoxManage binary (after renamed)
 
-# Suspicious strings to rename e.g. "VirtualBox" gets renamed to "XirtualXox" (no spaces, same length!)
-VirtualBox=XirtualXox
-virtualbox=xirtualxox
-VIRTUALBOX=XIRTUALXOX
-virtualBox=xirtualXox
-vbox=vxox
-Vbox=Vxox
-VBox=VXox
-VBOX=VXOX
-Oracle=Xracle
-oracle=xracle
-innotek=xnnotek
-InnoTek=XnnoTek
-INNOTEK=XNNOTEK
-PCI80EE=80EF
-PCI80ee=80ef
+# Suspicious strings to rename e.g. "VirtualBox" gets renamed to randomly-generated string (no spaces, same length!)
+virtual=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 7 | head -n 1 | tr 'A-Z' 'a-z')
+box=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 3 | head -n 1 | tr 'A-Z' 'a-z')
+VirtualBox=${virtual^}${box^}
+virtualbox=$virtual$box
+VIRTUALBOX=${virtual^^}${box^^}
+virtualBox=$virtual${box^}
+v=${virtual:0:1}
+vbox=$v$box
+Vbox=${v^}$box
+VBox=${v^}${box^}
+VBOX=${v^^}${box^^}
+oracle=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 6 | head -n 1 | tr 'A-Z' 'a-z')
+Oracle=${oracle^}
+inno=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 4 | head -n 1 | tr 'A-Z' 'a-z')
+tek=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 3 | head -n 1 | tr 'A-Z' 'a-z')
+innotek=$inno$tek
+InnoTek=${inno^}${tek^}
+EE=$(cat /dev/urandom | tr -dc 'a-fA-F' | fold -w 2 | head -n 1 | tr 'A-Z' 'a-z')
+PCI80ee=80$EE
+PCI80EE=80${EE^^}
 
 # Install parameter for VirtualBox app 
 USRNAME=talos                                           # username to start VirtualBox
