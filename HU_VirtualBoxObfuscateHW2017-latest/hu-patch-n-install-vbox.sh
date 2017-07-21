@@ -4,7 +4,6 @@
 SOURCESDIR=/home/talos/sources/vbox					# Dir where the vbox source code is
 KMKTOOLSSUBDIR=kBuild/bin/linux.amd64					# where we find the kmk tools e.g. kmk_md5sum
 MD5SUMOUT=$SOURCESDIR/kmk_md5.out					# log md5sum ops to this file
-VBOXMANAGE=$SOURCESDIR/out/linux.amd64/release/bin/VXoxManage		# location and name of VBoxManage binary (after renamed)
 
 # Suspicious strings to rename e.g. "VirtualBox" gets renamed to randomly-generated string (no spaces, same length!)
 virtual=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 7 | head -n 1 | tr 'A-Z' 'a-z')
@@ -27,6 +26,9 @@ InnoTek=${inno^}${tek^}
 EE=$(cat /dev/urandom | tr -dc 'a-fA-F' | fold -w 2 | head -n 1 | tr 'A-Z' 'a-z')
 PCI80ee=80$EE
 PCI80EE=80${EE^^}
+
+# Directories and filenames
+VBOXMANAGE=$SOURCESDIR/out/linux.amd64/release/bin/${VBox}Manage		# location and name of VBoxManage binary (after renamed)
 
 # Install parameter for VirtualBox app 
 USRNAME=talos                                           # username to start VirtualBox
@@ -185,7 +187,7 @@ if [ "$s" != "y" ]; then
         _echo "ok, nothing done.";
 else
 	_echo "[*]Replacing BIOS date"
-	sed -i 's/06\/23\/99/07\/24\/13/g' $SOURCESDIR/src/VXox/Devices/PC/BIOS/orgs.asm 
+	sed -i 's/06\/23\/99/07\/24\/13/g' $SOURCESDIR/src/$VBox/Devices/PC/BIOS/orgs.asm 
 fi
 
 # Start configuring the source code
@@ -202,7 +204,7 @@ _echo -n "[*]Should we start fixing the QT functions and methods (y/N)?"; read s
 if [ "$s" != "y" ]; then
         _echo "ok, nothing done.";
 else
-	replace_strings QVXoxLayout QVBoxLayout
+	replace_strings Q${VBox}Layout QVBoxLayout
 fi
 
 # fix BIOS MD5sum checks with a fake MD5sum tool
@@ -287,22 +289,22 @@ if [ "$s" != "y" ]; then _echo "...exiting. Nothing done."; exit 1; fi
 cd $SOURCESDIR/out/linux.amd64/release/bin
 
 # Take care of kernel modules
-if [ "$(lsmod | grep vxox)" ]; then
+if [ "$(lsmod | grep $vbox)" ]; then
 	_echo "[*] vxox kernel modules already loaded. Unloading them..."
-	sudo rmmod vxoxpci
-	sudo rmmod vxoxnetflt
-	sudo rmmod vxoxnetadp
-	sudo rmmod vxoxdrv
+	sudo rmmod ${vbox}pci
+	sudo rmmod ${vbox}netflt
+	sudo rmmod ${vbox}netadp
+	sudo rmmod ${vbox}drv
 fi
 
 _echo "[*] Loading vxox kernel modules"
-sudo modprobe vxoxdrv
-sudo modprobe vxoxnetflt
-sudo modprobe vxoxnetadp
-sudo modprobe vxoxpci
+sudo modprobe ${vbox}drv
+sudo modprobe ${vbox}netflt
+sudo modprobe ${vbox}netadp
+sudo modprobe ${vbox}pci
 
 _echo "[*] Following modules loaded:"
-lsmod | grep vxox
+lsmod | grep $vbox
 
 _echo -n "Should we proceed with configuring autoload of vbox modules via /etc/modules [y/N]"
 read s
@@ -310,10 +312,10 @@ if [ "$s" != "y" ]; then
         _echo "ok, nothing done.";
 else
    _echo "[*] Adding modules to /etc/modules"
-   echo 'vxoxdrv'    | sudo tee --append /etc/modules > /dev/null
-   echo 'vxoxpci'    | sudo tee --append /etc/modules > /dev/null
-   echo 'vxoxnetadp' | sudo tee --append /etc/modules > /dev/null
-   echo 'vxoxnetflt' | sudo tee --append /etc/modules > /dev/null
+   echo $vbox'drv'    | sudo tee --append /etc/modules > /dev/null
+   echo $vbox'pci'    | sudo tee --append /etc/modules > /dev/null
+   echo $vbox'netadp' | sudo tee --append /etc/modules > /dev/null
+   echo $vbox'netflt' | sudo tee --append /etc/modules > /dev/null
 fi
 
 # Copying files to usr dir
@@ -332,9 +334,9 @@ else
 	_echo "Copying shared libraries to /usr/lib/"
 	sudo cp -prf $SOURCESDIR/out/linux.amd64/release/bin/*.so /usr/lib/
 	_echo "Creating some symlinks to e.g. XirtualXox to VirtualBox"
-	if [ ! -e "/usr/local/bin/VirtualBox" ]; then sudo ln -s /usr/local/virtualbox/XirtualXox  /usr/local/bin/VirtualBox; fi
-	if [ ! -e "/usr/local/bin/VBoxSVC"    ]; then sudo ln -s /usr/local/virtualbox/VXoxSVC     /usr/local/bin/VBoxSVC;    fi
-	if [ ! -e "/usr/local/bin/VBoxManage" ]; then sudo ln -s /usr/local/virtualbox/VXoxManage  /usr/local/bin/VBoxManage; fi
+	if [ ! -e "/usr/local/bin/VirtualBox" ]; then sudo ln -s /usr/local/virtualbox/$VirtualBox  /usr/local/bin/VirtualBox; fi
+	if [ ! -e "/usr/local/bin/VBoxSVC"    ]; then sudo ln -s /usr/local/virtualbox/${VBox}SVC     /usr/local/bin/VBoxSVC;    fi
+	if [ ! -e "/usr/local/bin/VBoxManage" ]; then sudo ln -s /usr/local/virtualbox/${VBox}Manage  /usr/local/bin/VBoxManage; fi
 fi
 
 # create user/groups and permissions to vbox devices
@@ -345,8 +347,8 @@ if [ "$s" != "y" ]; then
 else
 	sudo groupadd vboxusers
  	sudo usermod -G vboxusers -a $USRNAME
-	sudo chmod 660 /dev/vxox*
-	sudo chgrp vboxusers /dev/vxox*
+	sudo chmod 660 /dev/${vbox}*
+	sudo chgrp vboxusers /dev/${vbox}*
 fi
 
 # Setup usergroup for vbox devices at startup
@@ -360,11 +362,11 @@ else
 	fi
 
        	_echo "[*]Adding devices in /etc/udev/rules.d/40-permissions.rules"
-	echo 'KERNEL=="vxoxdrv",                        GROUP="vboxusers", MODE="0660"' \
+	echo 'KERNEL=="'${vbox}'drv",                        GROUP="vboxusers", MODE="0660"' \
 		| sudo tee --append /etc/udev/rules.d/40-permissions.rules > /dev/null
-	echo 'KERNEL=="vxoxdrv",                        GROUP="vboxusers", MODE="0660"' \
+	echo 'KERNEL=="'${vbox}'drv",                        GROUP="vboxusers", MODE="0660"' \
 		| sudo tee --append /etc/udev/rules.d/40-permissions.rules > /dev/null
-	echo 'KERNEL=="vxoxdrvu",                       GROUP="vboxusers", MODE="0660"' \
+	echo 'KERNEL=="'${vbox}'drvu",                       GROUP="vboxusers", MODE="0660"' \
 		| sudo tee --append /etc/udev/rules.d/40-permissions.rules > /dev/null
 fi
 
@@ -388,8 +390,8 @@ else
         _echo "Adding vbox network interface to /etc/network/interfaces"
 	sudo cp /etc/network/interfaces /etc/network/interfaces.vboxinstaller.bak
 	echo 			| sudo tee --append /etc/network/interfaces > /dev/null
-	echo "auto vxoxnet0" 	| sudo tee --append /etc/network/interfaces > /dev/null
-	echo "iface vxoxnet0 inet static"		| sudo tee --append /etc/network/interfaces > /dev/null
+	echo "auto ${vbox}net0" 	| sudo tee --append /etc/network/interfaces > /dev/null
+	echo "iface ${vbox}net0 inet static"		| sudo tee --append /etc/network/interfaces > /dev/null
 	echo "        address         $IP" 	        | sudo tee --append /etc/network/interfaces > /dev/null
 	echo "        netmask         $NETMASK" 	| sudo tee --append /etc/network/interfaces > /dev/null
 	echo "        network         $NETWORK" 	| sudo tee --append /etc/network/interfaces > /dev/null
